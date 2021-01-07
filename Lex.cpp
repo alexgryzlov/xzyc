@@ -1,5 +1,6 @@
 #include "Lex.h"
 
+Scanner::Scanner(const std::string &text) : text_(text), pos_(0) {}
 
 std::ostream& operator<<(std::ostream& out, const Token& token) {
     out << TokenTypeStr[static_cast<int>(token.type)] << ": " << "'" << token.lexeme << "'";

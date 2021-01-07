@@ -38,7 +38,7 @@ struct Token {
 
 class Scanner {
 public:
-    Scanner(const std::string& text) : text_(text), pos_(0) {}
+    Scanner(const std::string& text);
     Token NextToken();
 
 private:

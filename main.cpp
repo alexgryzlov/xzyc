@@ -1,9 +1,6 @@
 #include <iostream>
 #include <string_view>
-#include <cctype>
 #include <vector>
-#include <memory>
-#include <charconv>
 
 #include "Lex.h"
 #include "Syntax.h"
@@ -12,9 +9,9 @@
 #include "Evaluator.h"
 
 // Grammar:
-//      term - mul {[+-] mul}
-//      mul - primary {[*/] primary}
-//      number - <integer_literal> | (term)
+//      term: mul {[+-] mul}
+//      mul: primary {[*/] primary}
+//      primary: <integer_literal> | (term)
 
 int main() {
     std::string s;
@@ -39,5 +36,3 @@ int main() {
     Evaluator evaluator(x);
     std::cout << evaluator.Evaluate() << std::endl;
 }
-
-//TODO: add print visitor (otherwise this pattern doesn't make much sense)

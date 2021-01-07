@@ -1,29 +1,38 @@
-#include "EvaluationVisitor.h"
+#include "PrintVisitor.h"
 #include "Syntax.h"
 
-
-int Syntax::NumberExpression::Accept(const EvaluationVisitor *a) const {
+int Syntax::NumberExpression::Accept(const Visitor *a) const {
     return a->Visit(this);
 }
 
-void Syntax::NumberExpression::Print() const {
-    std::cout << "<number-expression> : " << token_.lexeme << std::endl;
-}
+Syntax::NumberExpression::NumberExpression(Token number_token) : Expression(number_token) {}
 
-int Syntax::BinaryExpression::Accept(const EvaluationVisitor *a) const {
+int Syntax::BinaryExpression::Accept(const Visitor *a) const {
     return a->Visit(this);
 }
 
-void Syntax::BinaryExpression::Print() const {
-    std::cout << "<binary-expression> : " << token_.lexeme << std::endl;
+Syntax::BinaryExpression::BinaryExpression(Syntax::NodePtr left,
+                                           Token op_token,
+                                           Syntax::NodePtr right) : Expression(op_token) {
+    children.emplace_back(std::move(left));
+    children.emplace_back(std::move(right));
 }
 
-void Syntax::Tree::PrintNode(const Syntax::NodePtr &node, std::string indent) {
+void Syntax::Tree::PrintNode(const Node* node, std::string indent) {
     std::cout << indent;
     indent += "    ";
-    node->Print();
+    PrintVisitor print_visitor;
+    node->Accept(&print_visitor);
     for (const auto& i : node->children) {
-        PrintNode(i, indent);
+        PrintNode(i.get(), indent);
     }
 
 }
+
+void Syntax::Tree::Print()  {
+    PrintNode(root_.get());
+}
+
+Syntax::Tree::Tree(Syntax::NodePtr root)  : root_(std::move(root)) {}
+
+const Syntax::Node *Syntax::Tree::GetRoot() const  { return root_.get(); }

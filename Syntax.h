@@ -8,27 +8,16 @@
 
 #include "Lex.h"
 
-class EvaluationVisitor;
+class Visitor;
 
 namespace Syntax {
-
-    enum class NodeType {
-        Integer,
-        BinaryExpression
-    };
-
-    const std::string NodeTypeStr[] = {
-            "<integer-node>",
-            "<binary-expression-node>"
-    };
 
     struct Node;
     using NodePtr = std::unique_ptr<Node>;
 
     struct Node {
         std::vector<NodePtr> children;
-        virtual void Print() const = 0;
-        virtual int Accept(const EvaluationVisitor* a) const = 0;
+        virtual int Accept(const Visitor* a) const = 0;
     };
 
     struct Expression : Node {
@@ -39,32 +28,25 @@ namespace Syntax {
     };
 
     struct NumberExpression : Expression {
-        NumberExpression(Token number_token) : Expression(number_token) {}
-        void Print() const override;
-        int Accept(const EvaluationVisitor* a) const override;
+        NumberExpression(Token number_token);
+        int Accept(const Visitor* a) const override;
     };
 
     struct BinaryExpression : Expression {
         BinaryExpression(Syntax::NodePtr left,
                          Token op_token,
-                         Syntax::NodePtr right) : Expression(op_token) {
-            children.emplace_back(std::move(left));
-            children.emplace_back(std::move(right));
-        }
-        void Print() const override;
-        int Accept(const EvaluationVisitor* a) const override;
+                         Syntax::NodePtr right);
+        int Accept(const Visitor* a) const override;
     };
 
     class Tree {
     public:
-        Tree(NodePtr root) : root_(std::move(root)) {}
-        void Print() {
-            PrintNode(root_);
-        }
-        const Node* GetRoot() const { return root_.get(); }
+        Tree(NodePtr root);
+        void Print();
+        const Node* GetRoot() const;
 
     private:
-        void PrintNode(const NodePtr& node, std::string indent = "");
+        void PrintNode(const Node* node, std::string indent = "");
         NodePtr root_;
     };
 }
