@@ -9,14 +9,14 @@ public:
     Syntax::Tree Parse();
 
 private:
-    Syntax::NodePtr ParseTerm();
-    Syntax::NodePtr ParseMultiplication();
+    Syntax::NodePtr ParseExpression(int parent_precedence = 0);
     Syntax::NodePtr ParsePrimaryExpression();
 
 private:
     Token NextToken();
     Token CurrentToken();
-    Token Expect(TokenType type);
+    Token Expect(TokenType);
+    int GetOperatorPrecedence(const Token&) const;
 
 private:
     std::vector<Token> tokens_;

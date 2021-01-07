@@ -10,30 +10,21 @@ Parser::Parser(const std::vector<Token> &tokens)  : pos_(0) {
 }
 
 Syntax::Tree Parser::Parse() {
-    Syntax::NodePtr expression = ParseTerm();
+    Syntax::NodePtr expression = ParseExpression();
     Expect(TokenType::EndOfFile);
     return Syntax::Tree(std::move(expression));
 }
 
-Syntax::NodePtr Parser::ParseTerm() {
-    Syntax::NodePtr left = ParseMultiplication();
-
-    while (CurrentToken().type == TokenType::Plus ||
-           CurrentToken().type == TokenType::Minus) {
-        Token op = NextToken();
-        Syntax::NodePtr right = ParseMultiplication();
-        left = Syntax::NodePtr(new Syntax::BinaryExpression(std::move(left), op, std::move(right)));
-    }
-    return left;
-}
-
-Syntax::NodePtr Parser::ParseMultiplication() {
+Syntax::NodePtr Parser::ParseExpression(int parent_precedence) {
     Syntax::NodePtr left = ParsePrimaryExpression();
 
-    while (CurrentToken().type == TokenType::Star ||
-           CurrentToken().type == TokenType::Slash) {
+    while (true) {
+        int precedence = GetOperatorPrecedence(CurrentToken());
+        if (precedence == 0 || precedence <= parent_precedence) {
+            break;
+        }
         Token op = NextToken();
-        Syntax::NodePtr right = ParsePrimaryExpression();
+        Syntax::NodePtr right = ParseExpression(GetOperatorPrecedence(op));
         left = Syntax::NodePtr(new Syntax::BinaryExpression(std::move(left), op, std::move(right)));
     }
     return left;
@@ -42,7 +33,7 @@ Syntax::NodePtr Parser::ParseMultiplication() {
 Syntax::NodePtr Parser::ParsePrimaryExpression() {
     if (CurrentToken().type == TokenType::OpenParanthesis) {
         NextToken();
-        auto result = ParseTerm();
+        auto result = ParseExpression();
         Expect(TokenType::CloseParanthesis);
         return result;
     }
@@ -66,4 +57,17 @@ Token Parser::Expect(TokenType type) {
     std::cout << "Something went wrong!" << std::endl;
     return Token{.type = TokenType::BadToken,
             .lexeme = {}};
+}
+
+int Parser::GetOperatorPrecedence(const Token& token) const {
+    switch (token.type) {
+        case TokenType::Plus:
+        case TokenType::Minus:
+            return 1;
+        case TokenType::Star:
+        case TokenType::Slash:
+            return 2;
+        default:
+            return 0;
+    }
 }
